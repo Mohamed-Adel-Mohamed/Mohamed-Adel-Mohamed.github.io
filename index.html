@@ -12,6 +12,7 @@
 <meta property="og:description" content="Full-cycle web, network and Android penetration testing. IEEE-published security research. eJPT, CTIA, CAP certified.">
 <meta property="og:url" content="https://mohamed-adel-mohamed.github.io/">
 <meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#15130f">
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2311141c'/%3E%3Ctext x='32' y='45' font-family='Georgia,serif' font-size='34' fill='%23b5791a' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
 
@@ -20,20 +21,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#f1ebdd;
-    --panel:#faf6ec;
-    --panel-raised:#efe6d0;
-    --line:#e1d6bd;
-    --line-strong:#cdbf9f;
-    --text:#2b2620;
-    --text-muted:#685f50;
-    --text-faint:#978c76;
-    --signal:#b5791a;
-    --signal-dim:#8a5c12;
-    --add:#2f8f5b;
-    --remove:#b4463a;
+    color-scheme:dark;
+    --ink:#15130f;
+    --panel:#1b1813;
+    --panel-raised:#221e17;
+    --line:#2a261f;
+    --line-strong:#3d372c;
+    --text:#efe6d2;
+    --text-muted:#a79c88;
+    --text-faint:#8a806d;
+    --signal:#d9a441;
+    --signal-dim:#c08f2e;
+    --add:#5fbf8a;
+    --remove:#d9706b;
 
-    /* the terminal panel stays an "evidence" console regardless of page theme */
+    /* the terminal panel stays a slightly bluer "evidence" console */
     --code-bg:#11141c;
     --code-raised:#171b26;
     --code-line:#2a3041;
@@ -46,9 +48,9 @@
     --maxw:1180px;
     --measure:68ch;
 
-    /* hieroglyph rain */
-    --rain-color:#b5791a;
-    --rain-opacity:.20;
+    /* hieroglyph rain — dark settings */
+    --rain-color:#d9a441;
+    --rain-opacity:.16;
   }
 
   *{box-sizing:border-box;}
@@ -74,7 +76,7 @@
   a{ color:inherit; text-decoration:none; }
   code, .mono{ font-family:'IBM Plex Mono', monospace; }
 
-  ::selection{ background:var(--signal); color:#fbf3e3; }
+  ::selection{ background:var(--signal); color:#15130f; }
 
   :focus-visible{
     outline:2px solid var(--signal);
@@ -122,7 +124,6 @@
   main, footer{ position:relative; z-index:1; }
 
   @media (max-width:720px){
-    :root{ --rain-opacity:.13; }
     #hiero-rain{
       -webkit-mask-image:
         linear-gradient(90deg,#000 0,rgba(0,0,0,.5) 10%,rgba(0,0,0,.08) 24%,rgba(0,0,0,.08) 76%,rgba(0,0,0,.5) 90%,#000 100%),
@@ -269,7 +270,7 @@
     transform:translateY(-2px);
     border-color:var(--text-faint);
     background:var(--panel);
-    box-shadow:0 6px 18px -12px rgba(43,38,32,.55);
+    box-shadow:0 6px 18px -12px rgba(0,0,0,.65);
   }
   .pill:hover .arrow{ transform:translateX(3px); color:var(--text); }
   .pill-primary{
@@ -278,7 +279,7 @@
     color:#1a1203;
   }
   .pill-primary .arrow{ color:rgba(26,18,3,.65); }
-  .pill-primary:hover{ background:#c88b2b; border-color:#c88b2b; }
+  .pill-primary:hover{ background:#e3b45c; border-color:#e3b45c; }
   .pill-primary:hover .arrow{ color:#1a1203; }
 
   @media (max-width:560px){
@@ -292,7 +293,7 @@
     border:1px solid var(--code-line);
     border-radius:4px;
     overflow:hidden;
-    box-shadow:0 24px 48px -34px rgba(20,16,8,.7);
+    box-shadow:0 24px 48px -34px rgba(0,0,0,.75);
   }
   .panel-head{
     display:flex;
@@ -628,7 +629,7 @@
   .cert:hover{
     border-color:var(--line-strong);
     transform:translateY(-2px);
-    box-shadow:0 18px 30px -26px rgba(43,38,32,.6);
+    box-shadow:0 18px 30px -26px rgba(0,0,0,.65);
   }
   .cert .thumb{
     display:block;
@@ -699,7 +700,7 @@
     border-radius:4px;
     padding:52px 28px;
     text-align:center;
-    background:rgba(250,246,236,.45);
+    background:rgba(27,24,19,.5);
   }
   .empty .kicker{
     font-family:'IBM Plex Mono', monospace;
@@ -731,7 +732,7 @@
     color:#1a1203;
     border-color:var(--signal);
   }
-  .btn-primary:hover{ background:#c88b2b; border-color:#c88b2b; }
+  .btn-primary:hover{ background:#e3b45c; border-color:#e3b45c; }
   .btn-ghost:hover{ border-color:var(--line-strong); background:var(--panel); }
 
   /* ---------- contact / footer ---------- */
