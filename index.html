@@ -674,26 +674,6 @@
   .cert .cert-link:hover{ color:var(--signal-dim); border-color:var(--signal); }
   .cert .cert-link .mono{ color:var(--text-faint); font-size:.82rem; }
 
-  .also{
-    display:flex;
-    flex-wrap:wrap;
-    align-items:baseline;
-    gap:6px 14px;
-    margin-top:22px;
-    padding:16px 0 0;
-    border-top:1px solid var(--line);
-    color:var(--text-muted);
-    font-size:0.92rem;
-  }
-  .also .k{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:0.72rem;
-    letter-spacing:0.12em;
-    text-transform:uppercase;
-    color:var(--text-faint);
-  }
-  .also strong{ color:var(--text); font-weight:500; }
-
   /* ---------- writeups ---------- */
   .empty{
     border:1px dashed var(--line-strong);
@@ -807,7 +787,7 @@
   <section class="hero" id="top">
     <div class="wrap">
       <div>
-        <p class="eyebrow">Portfolio ::after</p>
+        <p class="eyebrow">Portfolio</p>
         <h1>Mohamed Adel Mesbah</h1>
         <p class="role">Penetration Tester <span>·</span> Bug Bounty Hunter <span>·</span> Security Researcher</p>
         <p class="lede">I test web applications, APIs, networks, and Android apps to identify, validate, and document security vulnerabilities. B.Sc. in Computer Networks and Cybersecurity, E-JUST 2026.</p>
@@ -838,7 +818,7 @@ bug_bounty_hunter
 security_researcher
 
 <span class="prompt">$</span> <span class="hl">ls certs/</span>
-eJPT  CTIA  CAP  RH124
+eJPT  CTIA  CAP
 
 <span class="prompt">$</span> <span class="hl">cat status.txt</span>
 <span class="add">Full time Bug-Bounty Hunter<br>open to security roles</span>
@@ -863,7 +843,6 @@ eJPT  CTIA  CAP  RH124
     <p>Beyond offensive security, I have experience in security monitoring and automated incident response. My graduation project, <strong>Observer</strong>, is an IEEE-published IoT cyber-resilience framework integrating Suricata, FortiGate, and an ELK/MISP pipeline with SOAR-driven recovery, achieving <strong>86.71% detection recall</strong> across 34 attack scenarios.</p>
     <p>I prioritize technical accuracy, evidence-driven findings, and practical remediation that strengthens security.</p>
   </div>
-</div>
 
         <aside class="facts" aria-label="At a glance">
           <h3>At a glance</h3>
@@ -872,7 +851,7 @@ eJPT  CTIA  CAP  RH124
             <div class="row"><dt>Focus</dt><dd>Web · API · Network · Android</dd></div>
             <div class="row"><dt>Education</dt><dd>B.Sc. Computer Networks &amp; Cybersecurity, E-JUST</dd></div>
             <div class="row"><dt>Published</dt><dd><a href="https://ieeexplore.ieee.org/document/11602931" target="_blank" rel="noopener">IEEE 3SCEA 2026</a></dd></div>
-            <div class="row"><dt>Certified</dt><dd>eJPT · CTIA · CAP · RH124</dd></div>
+            <div class="row"><dt>Certified</dt><dd>eJPT · CTIA · CAP</dd></div>
             <div class="row"><dt>Status</dt><dd>Open to security roles</dd></div>
           </dl>
         </aside>
@@ -880,19 +859,19 @@ eJPT  CTIA  CAP  RH124
 
       <div class="stats">
         <div class="stat">
-          <span class="n">+1 Year<em>+</em></span>
+          <span class="n">1 Year<em>+</em></span>
           <span class="l">Bug Bounty Hunting</span>
         </div>
         <div class="stat">
-          <span class="n">+20</span>
+          <span class="n">20<em>+</em></span>
           <span class="l">Full-Cycle Penetration Testing Reports<br>Delivered</span>
         </div>
         <div class="stat">
-          <span class="n">2<em>%</em></span>
+          <span class="n">2</span>
           <span class="l">Cybersecurity Internships</span>
         </div>
         <div class="stat">
-          <span class="n">4</span>
+          <span class="n">3</span>
           <span class="l">Security certifications</span>
         </div>
       </div>
@@ -901,10 +880,22 @@ eJPT  CTIA  CAP  RH124
       <div class="block" id="experience">
         <div class="block-head">
           <h3>Experience</h3>
-          <span class="k">2023 — 2025</span>
+          <span class="k">2023 — present</span>
         </div>
 
         <ol class="timeline">
+          <li class="job">
+            <div class="job-top">
+              <span class="job-role">Bug Bounty Hunter &amp; Penetration Tester</span>
+              <span class="job-date">Nov 2025 — Present</span>
+            </div>
+            <div class="job-org">Independent Security Researcher</div>
+            <ul>
+              <li>Conduct penetration testing across web applications, APIs, Android applications, and network infrastructure to identify vulnerabilities and validate their real-world impact.</li>
+              <li>Perform manual security testing, develop proof-of-concept demonstrations, and deliver detailed vulnerability reports with clear evidence and actionable remediation recommendations.</li>
+            </ul>
+          </li>
+
           <li class="job">
             <div class="job-top">
               <span class="job-role">Penetration Testing Bootcamp Participant</span>
@@ -991,6 +982,7 @@ eJPT  CTIA  CAP  RH124
             <span class="stack">Python · Flask · RSA · ECC</span>
             <div class="project-foot">
               <span class="metric">RSA · ECC · sign / verify · attack demos</span>
+              <a class="project-link" href="https://github.com/Mohamed-Adel-Mohamed/digital-signature-tool" target="_blank" rel="noopener">View on GitHub <span class="mono">↗</span></a>
             </div>
           </article>
         </div>
@@ -1086,12 +1078,6 @@ eJPT  CTIA  CAP  RH124
             <a class="cert-link" href="photos/MohamedAdel-CertifiedAppSecPractitionerv2%28CAP%29.pdf" target="_blank" rel="noopener">View certificate <span class="mono">PDF ↗</span></a>
           </div>
         </article>
-      </div>
-
-      <div class="also">
-        <span class="k">Also completed</span>
-        <strong>Red Hat System Administration I — RH124</strong>
-        <span>Red Hat</span>
       </div>
     </div>
   </section>
