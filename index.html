@@ -45,6 +45,10 @@
 
     --maxw:1180px;
     --measure:68ch;
+
+    /* hieroglyph rain */
+    --rain-color:#b5791a;
+    --rain-opacity:.20;
   }
 
   *{box-sizing:border-box;}
@@ -94,6 +98,39 @@
   @media (max-width:640px){
     .wrap{ padding:0 20px; }
     body{ font-size:16px; }
+  }
+
+  /* ---------- hieroglyph rain ---------- */
+  #hiero-rain{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    z-index:0;
+    pointer-events:none;
+    opacity:var(--rain-opacity);
+    /* quiet where the text sits, stronger toward the edges, soft fade top and bottom */
+    -webkit-mask-image:
+      linear-gradient(90deg,#000 0,rgba(0,0,0,.55) 12%,rgba(0,0,0,.12) 30%,rgba(0,0,0,.12) 70%,rgba(0,0,0,.55) 88%,#000 100%),
+      linear-gradient(180deg,transparent 0,#000 14%,#000 86%,transparent 100%);
+    -webkit-mask-composite:source-in;
+    mask-composite:intersect;
+    mask-image:
+      linear-gradient(90deg,#000 0,rgba(0,0,0,.55) 12%,rgba(0,0,0,.12) 30%,rgba(0,0,0,.12) 70%,rgba(0,0,0,.55) 88%,#000 100%),
+      linear-gradient(180deg,transparent 0,#000 14%,#000 86%,transparent 100%);
+  }
+  main, footer{ position:relative; z-index:1; }
+
+  @media (max-width:720px){
+    :root{ --rain-opacity:.13; }
+    #hiero-rain{
+      -webkit-mask-image:
+        linear-gradient(90deg,#000 0,rgba(0,0,0,.5) 10%,rgba(0,0,0,.08) 24%,rgba(0,0,0,.08) 76%,rgba(0,0,0,.5) 90%,#000 100%),
+        linear-gradient(180deg,transparent 0,#000 16%,#000 84%,transparent 100%);
+      mask-image:
+        linear-gradient(90deg,#000 0,rgba(0,0,0,.5) 10%,rgba(0,0,0,.08) 24%,rgba(0,0,0,.08) 76%,rgba(0,0,0,.5) 90%,#000 100%),
+        linear-gradient(180deg,transparent 0,#000 16%,#000 84%,transparent 100%);
+    }
   }
 
   /* ---------- header ---------- */
@@ -149,17 +186,6 @@
     padding:72px 0 84px;
     border-bottom:1px solid var(--line);
     position:relative;
-    overflow:hidden;
-  }
-  .hero::before{
-    content:"";
-    position:absolute;
-    inset:0;
-    background:url("photos/background.jpg") center right / 760px repeat;
-    opacity:.06;
-    pointer-events:none;
-    -webkit-mask-image:linear-gradient(100deg, transparent 30%, rgba(0,0,0,.9) 78%);
-    mask-image:linear-gradient(100deg, transparent 30%, rgba(0,0,0,.9) 78%);
   }
   .hero .wrap{
     position:relative;
@@ -756,6 +782,8 @@
 </head>
 <body>
 
+<canvas id="hiero-rain" aria-hidden="true"></canvas>
+
 <a class="skip" href="#main">Skip to content</a>
 
 <header>
@@ -1131,6 +1159,130 @@ eJPT  CTIA  CAP  RH124
       toggle.setAttribute('aria-expanded', 'false');
     }
   });
+</script>
+
+<script>
+  // hieroglyph rain — tinted glyph atlas falling behind the page
+  (function(){
+    var cv = document.getElementById('hiero-rain');
+    if (!cv) return;
+    var ctx = cv.getContext('2d');
+
+    var CELL = 40, COLS = 16, COUNT = 298;   // atlas layout
+    var GLYPH = 30;                // glyph size on screen (px)
+    var GAP = 1.25;                // column spacing (x glyph size)
+    var SPEED = [3, 8];            // rows per second
+    var TRAIL = [10, 20];          // trail length in glyphs
+    var FPS = 30;
+
+    var reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    var rnd = function(a, b){ return a + Math.random() * (b - a); };
+    var tinted = null, W, H, cols, rows, colW, streams, cells, last = 0, raf = 0;
+
+    var img = new Image();
+    img.src = 'photos/hieroglyph-atlas.png';
+
+    function tint(){
+      if (!img.width) return;
+      var color = getComputedStyle(document.documentElement).getPropertyValue('--rain-color').trim() || '#b5791a';
+      var o = document.createElement('canvas');
+      o.width = img.width; o.height = img.height;
+      var c = o.getContext('2d');
+      c.drawImage(img, 0, 0);
+      var d, p;
+      try { d = c.getImageData(0, 0, o.width, o.height); } catch(e) { return; }
+      p = d.data;
+      var t = document.createElement('canvas').getContext('2d');
+      t.fillStyle = color; t.fillRect(0, 0, 1, 1);
+      var px = t.getImageData(0, 0, 1, 1).data;
+      var r = px[0], g = px[1], b = px[2];
+      for (var i = 0; i < p.length; i += 4) {
+        var a = p[i];
+        p[i] = r; p[i+1] = g; p[i+2] = b; p[i+3] = a;
+      }
+      c.putImageData(d, 0, 0);
+      tinted = o;
+    }
+
+    function newStream(initial){
+      return {
+        y: initial ? rnd(-rows, rows) : rnd(-TRAIL[1], -2),
+        v: rnd(SPEED[0], SPEED[1]),
+        len: Math.round(rnd(TRAIL[0], TRAIL[1])),
+        on: Math.random() > .25
+      };
+    }
+
+    function resize(){
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = document.documentElement.clientWidth || window.innerWidth;
+      H = document.documentElement.clientHeight || window.innerHeight;
+      cv.width = W * dpr; cv.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      colW = GLYPH * GAP;
+      cols = Math.ceil(W / colW);
+      rows = Math.ceil(H / GLYPH) + 1;
+      cells = [];
+      for (var i = 0; i < cols * rows; i++) cells.push((Math.random() * COUNT) | 0);
+      streams = [];
+      for (var c = 0; c < cols; c++) streams.push(newStream(true));
+    }
+
+    function draw(){
+      if (!tinted) return;
+      ctx.clearRect(0, 0, W, H);
+      for (var c = 0; c < cols; c++) {
+        var s = streams[c];
+        if (!s.on) continue;
+        var head = Math.floor(s.y);
+        for (var k = 0; k < s.len; k++) {
+          var r = head - k;
+          if (r < 0 || r >= rows) continue;
+          ctx.globalAlpha = k === 0 ? 1 : Math.pow(1 - k / s.len, 1.6);
+          var i = cells[c * rows + r];
+          var sx = (i % COLS) * CELL, sy = ((i / COLS) | 0) * CELL;
+          ctx.drawImage(tinted, sx, sy, CELL, CELL, c * colW, r * GLYPH, GLYPH, GLYPH);
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function frame(t){
+      raf = requestAnimationFrame(frame);
+      if (t - last < 1000 / FPS) return;
+      var dt = Math.min((t - last) / 1000, .1);
+      last = t;
+      for (var c = 0; c < streams.length; c++) {
+        var s = streams[c];
+        s.y += s.v * dt;
+        if (s.y - s.len > rows) {
+          var fresh = newStream(false);
+          fresh.on = Math.random() > .2;
+          streams[c] = fresh;
+        }
+      }
+      for (var n = 0; n < cols * 2; n++) {
+        cells[(Math.random() * cells.length) | 0] = (Math.random() * COUNT) | 0;
+      }
+      draw();
+    }
+
+    function run(){
+      cancelAnimationFrame(raf);
+      if (reduce.matches || document.hidden) {
+        if (reduce.matches) draw();
+        return;
+      }
+      raf = requestAnimationFrame(frame);
+    }
+
+    img.onload = function(){
+      tint(); resize(); draw(); run();
+      window.addEventListener('resize', function(){ resize(); draw(); });
+      document.addEventListener('visibilitychange', run);
+      reduce.addEventListener('change', run);
+    };
+  })();
 </script>
 
 </body>
