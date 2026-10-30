@@ -684,27 +684,64 @@
   .cert .cert-link .mono{ color:var(--text-faint); font-size:.82rem; }
 
   /* ---------- writeups ---------- */
-  .empty{
-    border:1px dashed var(--line-strong);
-    border-radius:4px;
-    padding:52px 28px;
-    text-align:center;
-    background:rgba(27,24,19,.5);
+  .writeups{
+    display:flex;
+    flex-direction:column;
+    border-top:1px solid var(--line);
   }
-  .empty .kicker{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:0.72rem;
-    letter-spacing:0.14em;
-    text-transform:uppercase;
-    color:var(--signal-dim);
-    margin:0 0 14px;
+  .writeup-row{
+    display:grid;
+    grid-template-columns:1fr auto auto;
+    gap:24px;
+    align-items:baseline;
+    padding:22px 14px;
+    border-bottom:1px solid var(--line);
+    border-left:2px solid transparent;
+    margin-left:-16px;
+    transition:border-color .15s ease, background .15s ease;
   }
-  .empty h3{ font-size:1.35rem; margin-bottom:10px; }
-  .empty p{
+  .writeup-row:hover{
+    border-left-color:var(--signal);
+    background:rgba(217,164,65,.06);
+  }
+  .writeup-row h3{ font-size:1.18rem; }
+  .writeup-row .excerpt{
+    font-size:0.95rem;
     color:var(--text-muted);
-    max-width:52ch;
-    margin:0 auto 24px;
-    font-size:0.96rem;
+    margin:6px 0 0;
+    max-width:62ch;
+  }
+  .writeup-meta{
+    font-size:0.85rem;
+    color:var(--text-muted);
+    white-space:nowrap;
+    text-align:right;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .writeup-meta .sev{ font-family:'IBM Plex Mono', monospace; font-size:0.76rem; }
+  .sev-high{ color:var(--signal); }
+  .sev-medium{ color:#c9a45a; }
+  .sev-low{ color:var(--text-faint); }
+  .writeup-date{ color:var(--text-faint); font-size:0.85rem; white-space:nowrap; }
+
+  .writeups-foot{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-top:26px;
+  }
+  .writeups-foot .foot-note{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.74rem;
+    color:var(--text-faint);
+  }
+  @media (max-width:640px){
+    .writeup-row{ grid-template-columns:1fr; gap:6px; }
+    .writeup-meta, .writeup-date{ text-align:left; }
   }
 
   .btn{
@@ -781,7 +818,7 @@
     <a href="#top" class="wordmark">Mohamed Adel <span>Mesbah</span></a>
     <nav id="nav">
       <a href="#about">Who am I</a>
-      <a href="#writeups">Writeups</a>
+      <a href="writeups/index.html">Writeups</a>
       <a href="#certs">Certifications</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -1102,11 +1139,23 @@ eJPT  CTIA  CAP
       </div>
       <p class="intro">Long-form writeups on vulnerabilities, tooling and detection. Every report published here is either from a program that allows disclosure or is generalised enough to teach from without exposing a client.</p>
 
-      <div class="empty">
-        <p class="kicker">Status — drafting</p>
-        <h3>No writeups published yet</h3>
-        <p>The first batch is in progress: an authorization bypass, an SSRF chain and a detection rule that caught what the alerting missed. They'll appear here as they're finished and cleared for release.</p>
-        <a class="btn btn-primary" href="https://medium.com/@Mohamed3adel" target="_blank" rel="noopener">Read on Medium meanwhile ↗</a>
+      <div class="writeups">
+        <a class="writeup-row" href="writeups/graphql-idor.html">
+          <div>
+            <h3>GraphQL IDOR — How a Missing Org Check Let Me Edit Another Tenant's Permissions</h3>
+            <p class="excerpt">A scope mutation trusted a caller-supplied user ID across tenants, letting any free account rewrite another organization's permissions.</p>
+          </div>
+          <div class="writeup-meta">
+            <span class="program">Web · GraphQL</span>
+            <span class="sev sev-high">High</span>
+          </div>
+          <div class="writeup-date">Sep 2026</div>
+        </a>
+      </div>
+
+      <div class="writeups-foot">
+        <a class="btn btn-primary" href="writeups/index.html">View all writeups <span aria-hidden="true">↗</span></a>
+        <span class="foot-note">01 published · more in progress</span>
       </div>
     </div>
   </section>

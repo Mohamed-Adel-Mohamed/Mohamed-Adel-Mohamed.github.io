@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Writeups — Mohamed Adel Mesbah</title>
+<meta name="description" content="Security writeups by Mohamed Adel Mesbah — vulnerability research, exploitation and remediation notes.">
+<meta name="theme-color" content="#15130f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2311141c'/%3E%3Ctext x='32' y='45' font-family='Georgia,serif' font-size='34' fill='%23d9a441' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+
+<canvas id="hiero-rain" aria-hidden="true"></canvas>
+
+<header>
+  <div class="wrap">
+    <a href="../index.html" class="wordmark">Mohamed Adel <span>Mesbah</span></a>
+    <nav id="nav">
+      <a href="../index.html#about">Who am I</a>
+      <a href="index.html" aria-current="page">Writeups</a>
+      <a href="../index.html#certs">Certifications</a>
+      <a href="../index.html#contact">Contact</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="page-head">
+      <p class="page-kicker">Notes from the field</p>
+      <h1>Writeups</h1>
+      <p class="lede">Long-form writeups on vulnerabilities, tooling and detection. Every report published here is either from a program that allows disclosure or is generalised enough to teach from without exposing a client.</p>
+    </div>
+
+    <div class="writeups">
+      <a class="writeup-row" href="graphql-idor.html">
+        <div>
+          <h3>GraphQL IDOR — How a Missing Org Check Let Me Edit Another Tenant's Permissions</h3>
+          <p class="excerpt">A scope mutation trusted a caller-supplied <code>userId</code> across tenants, letting any free account rewrite another organization's permissions.</p>
+        </div>
+        <div class="writeup-meta">
+          <span class="program">Web · GraphQL</span>
+          <span class="sev sev-high">High</span>
+        </div>
+        <div class="writeup-date">Sep 2026</div>
+      </a>
+    </div>
+
+    <p class="archive-note">
+      More writeups are in progress. Each one is published only after the affected program allows disclosure or the details have been generalised.
+    </p>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Mohamed Adel Mesbah</span>
+    <span><a href="../index.html">Back to the portfolio ↑</a></span>
+  </div>
+</footer>
+
+<script>
+  var toggle = document.getElementById('navToggle');
+  var nav = document.getElementById('nav');
+  if (toggle) {
+    toggle.addEventListener('click', function(){
+      var open = nav.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    nav.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){
+        nav.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+  window.addEventListener('resize', function(){
+    if (window.innerWidth > 720 && nav.classList.contains('open')) {
+      nav.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+</script>
+
+<script src="rain.js?v=1"></script>
+
+</body>
+</html>

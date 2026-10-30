@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GraphQL IDOR — How a Missing Org Check Let Me Edit Another Tenant's Permissions</title>
+<meta name="description" content="A GraphQL scope mutation trusted a caller-supplied userId across tenants — a tenant-isolation bypass that let any free account modify another organization's permissions.">
+<meta name="theme-color" content="#15130f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2311141c'/%3E%3Ctext x='32' y='45' font-family='Georgia,serif' font-size='34' fill='%23d9a441' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+
+<canvas id="hiero-rain" aria-hidden="true"></canvas>
+
+<header>
+  <div class="wrap">
+    <a href="../index.html" class="wordmark">Mohamed Adel <span>Mesbah</span></a>
+    <nav id="nav">
+      <a href="../index.html#about">Who am I</a>
+      <a href="index.html">Writeups</a>
+      <a href="../index.html#certs">Certifications</a>
+      <a href="../index.html#contact">Contact</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <article class="article">
+      <a class="back" href="index.html">← All writeups</a>
+      <p class="kicker">Web · GraphQL · Access control</p>
+      <h1>GraphQL IDOR — How a Missing Org Check Let Me Edit Another Tenant's Permissions</h1>
+
+      <div class="article-meta">
+        <span>Sept 1, 2026</span>
+        <span class="dot">·</span>
+        <span>Mohamed Adel Mesbah</span>
+        <span class="badge">High</span>
+      </div>
+
+      <div class="tldr">
+        <p><strong>TL;DR:</strong> A GraphQL mutation meant to grant or revoke a user's permission scopes trusted the caller-supplied <code>userId</code> without checking it belonged to the caller's own organization. Any free-tier account could add or remove scopes on a user in a completely different org — a straight-up tenant-isolation bypass, no special access needed.</p>
+      </div>
+
+      <h2>The feature</h2>
+      <p>The app is multi-tenant: each organization has its own users, and org admins grant or revoke permission scopes through a GraphQL mutation:</p>
+
+      <pre><code>mutation SC($input: ScopeChangeInput!) {
+  revokeScope(input: $input) { ... on User { id scopes } }
+}</code></pre>
+
+      <p>It takes a <code>userId</code> and a <code>scopeName</code>. Nothing in the request says which org the target belongs to — the server is supposed to work that out itself.</p>
+
+      <figure class="diagram">
+        <img src="graphql-idor/cross-tenant-scope-bypass.svg" alt="Diagram of two tenant boundaries: an attacker in Organization A sends a victim userId from Organization B to the scope resolver, which skips the authorization check.">
+        <figcaption>Two tenants, one resolver. Same-org calls are correctly denied; the cross-org path never runs the check.</figcaption>
+      </figure>
+
+      <h2>First attempt: blocked (as expected)</h2>
+      <p>Obvious first test: try it against my own account with a scope I don't have.</p>
+
+      <pre><code>revokeScope(userId: &lt;my own id&gt;, scopeName: "organization:automation:ui:write")
+→ {"errors":[{"message":"not authorized"}]}</code></pre>
+
+      <p>Good — there's a check in there somewhere.</p>
+
+      <h2>The bypass</h2>
+      <p>I made a second, throwaway free account in a completely different org, grabbed its <code>userId</code>, and sent the exact same mutation — just pointed at that account instead of my own:</p>
+
+      <pre><code>revokeScope(userId: &lt;other org's user id&gt;, scopeName: "organization:users:read")
+→ HTTP 200, returns the live record with the scope removed</code></pre>
+
+      <p>That's the whole bug. The authorization check only runs when the target is in the caller's own org — cross-org, it just doesn't run at all.</p>
+
+      <p><strong>Minimal repro script</strong> (loops both mutations over three scopes against <code>$VICTIM</code>; every call returns HTTP 200 and mutates or echoes B's scope array):</p>
+
+      <pre><code>JWT_A="&lt;A's idToken&gt;"
+VICTIM="507f1f77bcf86cd799439011"
+for OP in revokeScope grantScope; do
+  for SCOPE in organization:users:read organization:users:write organization:reports:read; do
+    curl -s https://api.target.example/graphql -H "content-type: application/json" -H "Authorization: $JWT_A" \
+      -d "{\"query\":\"mutation SC(\$input: ScopeChangeInput!){$OP(input:\$input){... on User {id scopes}}}\",\"variables\":{\"input\":{\"userId\":\"$VICTIM\",\"scopeName\":\"$SCOPE\"}}}"
+    sleep 2
+  done
+done</code></pre>
+
+      <figure class="diagram">
+        <img src="graphql-idor/resolver-asymmetry-grid.svg" alt="Table comparing same-org and cross-org behaviour across scope mutations, role mutations, platform mutations and detail reads.">
+        <figcaption>The resolver family, side by side. <code>grantScope</code> / <code>revokeScope</code> is the only pair missing the cross-org gate.</figcaption>
+      </figure>
+
+      <h2>Confirming the write</h2>
+      <p>A follow-up call against the same victim echoed the scope I'd just revoked, and a second scope removed on a later request stacked on top of the first — so this isn't a reflected no-op, it's a real, persisted write to another tenant's permissions.</p>
+
+      <p>I also tried the sibling <code>grantRole</code> / <code>revokeRole</code> mutations the same way — correctly denied in both directions. Same resolver family, same app, just one mutation pair missing the check everyone else has.</p>
+
+      <figure class="diagram">
+        <img src="graphql-idor/poc-sequence-flow.svg" alt="Sequence diagram: an attacker calls the resolver, the cross-org branch applies the write and returns 200, and later calls echo the change.">
+        <figcaption>The write is applied, persists, and shows up on the next read of the victim record.</figcaption>
+      </figure>
+
+      <h2>Impact</h2>
+      <ul>
+        <li><strong>Integrity:</strong> an attacker can silently strip scopes a victim's users genuinely hold, removing their access with no audit trail on the victim's side.</li>
+        <li><strong>Confidentiality (minor):</strong> each response echoes the victim's current scope list.</li>
+        <li><strong>No victim interaction needed</strong> — just their <code>userId</code>, which the app hands back in places like analytics cookies.</li>
+      </ul>
+
+      <h2>Takeaways</h2>
+      <ul>
+        <li>When an ownership check exists for one direction (same-tenant), always test whether it's actually enforced for the cross-tenant case too — "there's a check" doesn't mean "there's the right check."</li>
+        <li>Sibling mutations (grant/revoke pairs, read/write pairs) are a cheap way to find the one that's missing a gate: if three out of four behave one way, the fourth is worth a close look.</li>
+        <li>A write-IDOR that echoes the mutated object back to you is easy to mistake for a no-op — always diff the before/after state, not just the status code.</li>
+      </ul>
+
+      <div class="reward">
+        <h2>Reward</h2>
+        <p>The report was accepted as a high-severity finding and paid out: <span class="amount">$$$</span></p>
+        <figure>
+          <img src="graphql-idor/bounty.png" alt="Redacted payout confirmation showing the bounty payment.">
+          <figcaption>Payout confirmation — program and amount redacted.</figcaption>
+        </figure>
+      </div>
+
+      <p class="note">No target, client or program identifiers are included in this writeup. Hostnames, user IDs and tokens shown here are placeholders.</p>
+    </article>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Mohamed Adel Mesbah</span>
+    <span><a href="index.html">More writeups ↑</a></span>
+  </div>
+</footer>
+
+<script>
+  var toggle = document.getElementById('navToggle');
+  var nav = document.getElementById('nav');
+  if (toggle) {
+    toggle.addEventListener('click', function(){
+      var open = nav.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    nav.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){
+        nav.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+  window.addEventListener('resize', function(){
+    if (window.innerWidth > 720 && nav.classList.contains('open')) {
+      nav.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+</script>
+
+<script src="rain.js?v=1"></script>
+
+</body>
+</html>
